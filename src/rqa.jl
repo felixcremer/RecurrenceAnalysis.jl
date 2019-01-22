@@ -403,6 +403,19 @@ to diagonal structures ("RR", "DET", "L", "Lmax", "DIV" and "ENTR"), which makes
 this function slightly faster.
 """
 function rqa(x; onlydiagonal=false, kwargs...)
+    if onlydiagonal
+        rqa_tup = (RR=0., DET=0., L=0., Lmax=0., DIV=0., ENTR=0.)
+        return rqa!(rqa_tup, x, onlydiagonal=onlydiagonal, kwargs...)
+    else
+        rqa_tup = (RR=0, DET=0, L=0.,
+                    Lmax = 0., DIV=0., ENTR=0.,
+                    TREND=0., LAM=0., TT=0.,
+                    Vmax=0., VENTR=0., MRT=0., RTE=0., NMPRT=0.)
+                    return rqa!(rqa_tup, x, onlydiagonal=onlydiagonal, kwargs...)
+    end
+end
+
+function rqa!(rqa_tup, x; onlydiagonal=false, kwargs...)
     # Parse arguments for diagonal and vertical structures
     kw_d = Dict(kwargs)
     haskey(kw_d, :theilerdiag) && (kw_d[:theiler] = kw_d[:theilerdiag])
@@ -410,12 +423,12 @@ function rqa(x; onlydiagonal=false, kwargs...)
     dhist = diagonalhistogram(x; kw_d...)
     rr_d = recurrencerate(x; kw_d...)
     if onlydiagonal
-        return Dict("RR"  => recurrencerate(x; kwargs...),
-        "DET"  => _determinism(dhist, rr_d*_rrdenominator(x; kw_d...)),
-        "L"    => _dl_average(dhist),
-        "Lmax" => _dl_max(dhist),
-        "DIV"  => 1.0/_dl_max(dhist),
-        "ENTR"  => _dl_entropy(dhist)
+        return (RR  = recurrencerate(x; kwargs...),
+        DET  = _determinism(dhist, rr_d*_rrdenominator(x; kw_d...)),
+        L    = _dl_average(dhist),
+        Lmax = _dl_max(dhist),
+        DIV  = 1.0/_dl_max(dhist),
+        ENTR  = _dl_entropy(dhist)
         )
    else
         kw_v = Dict(kwargs)
